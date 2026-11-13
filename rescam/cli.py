@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 
 from .campaigns import CURRENCIES, create_campaign, qr_path
 from .storage import DATA_DIR, list_campaigns
@@ -35,7 +36,9 @@ def create_from_cli() -> None:
 
 def serve() -> None:
     import uvicorn
-    uvicorn.run("rescam.server:app", host="127.0.0.1", port=8000, reload=False)
+    host = os.getenv("RESCAM_HOST", "127.0.0.1")
+    port = int(os.getenv("PORT", "8000"))
+    uvicorn.run("rescam.server:app", host=host, port=port, reload=False)
 
 
 def main() -> None:
