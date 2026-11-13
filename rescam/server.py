@@ -1,11 +1,15 @@
 from __future__ import annotations
 
+import base64
+import binascii
+import hmac
+import os
 from datetime import datetime, timezone
 from html import escape
 from pathlib import Path
 from urllib.parse import parse_qs
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.responses import FileResponse, HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
@@ -38,6 +42,44 @@ def page(title: str, content: str) -> str:
 </html>"""
 
 
+def require_admin(request: Request) -> None:
+    username = os.getenv("RESCAM_ADMIN_USERNAME")
+    password = os.getenv("RESCAM_ADMIN_PASSWORD")
+    if username and password:
+        header = request.headers.get("authorization", "")
+        scheme, _, token = header.partition(" ")
+        if scheme.lower() != "basic" or not token:
+            raise HTTPException(
+                status_code=401,
+                detail="Admin login required",
+                headers={"WWW-Authenticate": 'Basic realm="Re-scam dashboard"'},
+            )
+        try:
+            decoded = base64.b64decode(token, validate=True).decode("utf-8")
+            supplied_user, separator, supplied_password = decoded.partition(":")
+        except (binascii.Error, UnicodeDecodeError):
+            supplied_user, separator, supplied_password = "", "", ""
+        valid = (
+            bool(separator)
+            and hmac.compare_digest(supplied_user, username)
+            and hmac.compare_digest(supplied_password, password)
+        )
+        if not valid:
+            raise HTTPException(
+                status_code=401,
+                detail="Invalid admin credentials",
+                headers={"WWW-Authenticate": 'Basic realm="Re-scam dashboard"'},
+            )
+        return
+
+    client_host = request.client.host if request.client else ""
+    if client_host not in {"127.0.0.1", "::1", "localhost", "testclient"}:
+        raise HTTPException(
+            status_code=503,
+            detail="Set RESCAM_ADMIN_USERNAME and RESCAM_ADMIN_PASSWORD before remote access.",
+        )
+
+
 def get_existing_campaign(campaign_id: str) -> dict:
     campaign = get_campaign(campaign_id)
     if not campaign:
@@ -46,7 +88,7 @@ def get_existing_campaign(campaign_id: str) -> dict:
 
 
 @app.get("/", response_class=HTMLResponse)
-def dashboard() -> str:
+def dashboard(_: None = Depends(require_admin)) -> str:
     campaigns = list_campaigns()
     total_visits = sum(item["visit_count"] for item in campaigns)
     rows = ""
@@ -118,7 +160,7 @@ def dashboard() -> str:
 
 
 @app.post("/campaigns")
-async def create_from_dashboard(request: Request):
+async def create_from_dashboard(request: Request, _: None = Depends(require_admin)):
     body = (await request.body()).decode("utf-8", errors="replace")
     form = {key: values[0] for key, values in parse_qs(body).items() if values}
     try:
@@ -143,7 +185,7 @@ async def create_from_dashboard(request: Request):
 
 
 @app.get("/campaigns/{campaign_id}", response_class=HTMLResponse)
-def campaign_detail(campaign_id: str) -> str:
+def campaign_detail(campaign_id: str, _: None = Depends(require_admin)) -> str:
     campaign = get_existing_campaign(campaign_id)
     cid = escape(campaign["id"])
     url = escape(campaign["public_url"])
