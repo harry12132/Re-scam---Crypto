@@ -1,41 +1,67 @@
 # Re-scam — Crypto
 
-A Python-based crypto scam-awareness and research tool. It creates clearly labelled simulated crypto receipts, QR links, and anonymous visit notifications.
+A scam-awareness tool for creating transparent crypto simulations and reviewing anonymous page-view activity.
 
-> **Simulation only.** Generated receipts are not proof of payment and must never be presented as genuine transaction records. The linked page identifies itself as a simulation. It does not request identity documents, contact details, wallet credentials, or location.
+Re-scam is not a payment processor, wallet, blockchain explorer, or evidence-collection service. It does not create or verify transactions. Every public campaign page is prominently marked **SIMULATION — NOT A REAL PAYMENT**.
 
-## Features
+## What works
 
-- Interactive CLI for creating a campaign.
-- Simulated BTC, ETH, SOL, or XRP receipt details.
-- QR code linking to a campaign page.
-- FastAPI web server for campaign pages.
-- Anonymous visit counts and optional email alerts.
-- SQLite storage for campaign metadata and visit timestamps.
+- Browser dashboard to create and manage campaigns.
+- Simulated BTC, ETH, SOL, and XRP receipt pages.
+- Unique campaign links and downloadable QR codes.
+- Campaign view counts and a local campaign list.
+- Optional email alert when a campaign page is opened.
+- SQLite storage on the machine running the app.
+- Responsive layout for desktop and mobile.
 
-## Quick start
+The page-view counter stores only a campaign ID and timestamp. It does not collect visitor IP addresses, browser fingerprints, names, email addresses, phone numbers, identity documents, wallet credentials, or location.
 
-Python 3.10+
+## Run locally
+
+Python 3.10 or newer:
 
 ```bash
-python -m venv .venv
+git clone https://github.com/harry12132/Re-scam---Crypto.git
+cd Re-scam---Crypto
+python3 -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
 pip install -e .
-rescam create
-```
-
-Run the web server:
-
-```bash
 rescam serve
 ```
 
-By default, the server listens on `http://127.0.0.1:8000`. For a remotely accessible test, deploy it behind HTTPS and set `RESCAM_PUBLIC_URL` to its public base URL before creating campaigns.
+Open http://127.0.0.1:8000. Create a campaign in the dashboard. Its detail page provides the share URL and QR code.
+
+To create a campaign from Terminal instead:
+
+```bash
+rescam create
+```
+
+To list campaigns and their view counts:
+
+```bash
+rescam list
+```
+
+## Sharing campaigns
+
+By default, campaign links use localhost and work only on the same computer. For public links, deploy behind HTTPS and set `RESCAM_PUBLIC_URL` to the public base URL before creating campaigns.
+
+**Do not expose the dashboard to the public internet without setting both `RESCAM_ADMIN_USERNAME` and `RESCAM_ADMIN_PASSWORD`.** The dashboard uses HTTP Basic authentication when those variables are set. The public simulation pages remain accessible without dashboard credentials. Use a strong unique password and HTTPS. For a hosted deployment, also put the dashboard behind an access-control layer such as Cloudflare Access.
+
+Example:
+
+```bash
+export RESCAM_PUBLIC_URL="https://your-domain.example"
+export RESCAM_ADMIN_USERNAME="admin"
+export RESCAM_ADMIN_PASSWORD="use-a-long-unique-password"
+```
+
+Set these values in your hosting provider's environment-variable settings, not in source code or committed files. Do not use the example domain or password literally.
 
 ## Email alerts
 
-Email is optional. Configure these environment variables to receive an alert when a campaign page is opened:
+Email is optional. Configure these environment variables:
 
 - `RESCAM_SMTP_HOST`
 - `RESCAM_SMTP_PORT` (defaults to `587`)
@@ -44,18 +70,12 @@ Email is optional. Configure these environment variables to receive an alert whe
 - `RESCAM_ALERT_FROM`
 - `RESCAM_ALERT_TO`
 
-Use an app-specific SMTP password. Do not commit credentials to this repository. If SMTP is not configured, visits are still recorded locally.
+Use an app-specific SMTP password. Never commit credentials. If SMTP is not configured, visit counts still work locally.
 
-## Data and privacy
+## Data location
 
-The server stores campaign details and a timestamp for each page visit. It does not store visitor IP addresses, browser fingerprints, names, email addresses, phone numbers, identity documents, or precise location. The campaign page clearly explains that it is a simulation.
+By default, campaign data and QR images are stored under `~/.rescam`. Set `RESCAM_DATA_DIR` to use another directory. Back up this directory if you need to retain campaign history.
 
-## Commands
+## Safety and intended use
 
-- `rescam create` — create a simulated campaign and QR code.
-- `rescam serve` — run the local web server.
-- `rescam list` — list locally stored campaigns.
-
-## Disclaimer
-
-Use this project for education, research, and scam-awareness demonstrations. Do not impersonate real payment providers, fabricate evidence for disputes, or mislead people into disclosing personal or financial information.
+Use Re-scam for education, research, and scam-awareness demonstrations. Do not impersonate a real payment provider, fabricate proof of payment, solicit financial credentials, or trick visitors into disclosing personal information. If you need to report a suspected scam, preserve genuine communications and use the relevant platform or official reporting channel yourself.
