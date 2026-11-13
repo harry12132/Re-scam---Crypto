@@ -65,3 +65,13 @@ def test_remote_dashboard_requires_admin_credentials():
     remote_client = TestClient(app, client=("203.0.113.10", 12345))
     response = remote_client.get("/")
     assert response.status_code == 503
+
+
+def test_remote_dashboard_accepts_configured_basic_auth(client, monkeypatch):
+    monkeypatch.setenv("RESCAM_ADMIN_USERNAME", "operator")
+    monkeypatch.setenv("RESCAM_ADMIN_PASSWORD", "test-password")
+    remote_client = TestClient(app, client=("203.0.113.10", 12345))
+
+    assert remote_client.get("/").status_code == 401
+    response = remote_client.get("/", auth=("operator", "test-password"))
+    assert response.status_code == 200
