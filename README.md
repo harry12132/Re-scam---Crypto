@@ -45,7 +45,7 @@ rescam list
 
 ## Sharing campaigns
 
-By default, campaign links use localhost and work only on the same computer. For public links, deploy behind HTTPS and set `RESCAM_PUBLIC_URL` to the public base URL before creating campaigns.
+By default, the server binds to localhost and campaign links work only on the same computer. For a hosted deployment, set `RESCAM_HOST=0.0.0.0`, use the port supplied by your host (the app reads `PORT`), deploy behind HTTPS, and set `RESCAM_PUBLIC_URL` to the public base URL before creating campaigns.
 
 **Do not expose the dashboard to the public internet without setting both `RESCAM_ADMIN_USERNAME` and `RESCAM_ADMIN_PASSWORD`.** The dashboard uses HTTP Basic authentication when those variables are set. The public simulation pages remain accessible without dashboard credentials. Use a strong unique password and HTTPS. For a hosted deployment, also put the dashboard behind an access-control layer such as Cloudflare Access.
 
