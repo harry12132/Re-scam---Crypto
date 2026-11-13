@@ -61,8 +61,8 @@ def require_admin(request: Request) -> None:
             supplied_user, separator, supplied_password = "", "", ""
         valid = (
             bool(separator)
-            and hmac.compare_digest(supplied_user, username)
-            and hmac.compare_digest(supplied_password, password)
+            and hmac.compare_digest(supplied_user.encode(), username.encode())
+            and hmac.compare_digest(supplied_password.encode(), password.encode())
         )
         if not valid:
             raise HTTPException(
