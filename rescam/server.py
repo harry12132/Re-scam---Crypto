@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 from html import escape
+from pathlib import Path
 from urllib.parse import parse_qs
 
 from fastapi import FastAPI, HTTPException, Request
@@ -13,7 +14,7 @@ from .notifications import send_visit_alert
 from .storage import get_campaign, list_campaigns, record_visit
 
 app = FastAPI(title="Re-scam — Crypto", version="0.2.0")
-app.mount("/static", StaticFiles(directory="rescam/static"), name="static")
+app.mount("/static", StaticFiles(directory=Path(__file__).parent / "static"), name="static")
 
 
 def page(title: str, content: str) -> str:
