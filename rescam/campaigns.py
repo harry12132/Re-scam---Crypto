@@ -21,9 +21,13 @@ def normalize_amount(value: str) -> str:
         raise ValueError("Enter a valid amount.") from None
     if not amount.is_finite() or amount <= 0:
         raise ValueError("Amount must be a finite number greater than zero.")
-    if len(value) > 40 or amount.as_tuple().exponent < -18:
-        raise ValueError("Amount is too precise or too long.")
-    return format(amount.normalize(), "f")
+    parts = amount.as_tuple()
+    if len(value) > 40 or parts.exponent < -18 or len(parts.digits) > 36 or amount.adjusted() > 18:
+        raise ValueError("Amount is too precise or too large.")
+    normalized = format(amount, "f")
+    if "." in normalized:
+        normalized = normalized.rstrip("0").rstrip(".")
+    return normalized
 
 
 def create_campaign(
