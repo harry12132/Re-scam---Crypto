@@ -14,7 +14,7 @@ Re-scam is not a payment processor, wallet, blockchain explorer, or evidence-col
 - SQLite storage on the machine running the app.
 - Responsive layout for desktop and mobile.
 
-The page-view counter stores only a campaign ID and timestamp. It does not collect visitor IP addresses, browser fingerprints, names, email addresses, phone numbers, identity documents, wallet credentials, or location.
+The application page-view counter stores only a campaign ID and timestamp. It does not collect visitor IP addresses, browser fingerprints, names, email addresses, phone numbers, identity documents, wallet credentials, or location. A hosting provider, reverse proxy, or email provider may maintain separate infrastructure logs under its own policies.
 
 ## Run locally
 
