@@ -4,7 +4,7 @@ import argparse
 import os
 
 from .campaigns import CURRENCIES, create_campaign, qr_path
-from .storage import DATA_DIR, list_campaigns
+from .storage import list_campaigns
 
 
 def prompt(label: str, default: str | None = None) -> str:
