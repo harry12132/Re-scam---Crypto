@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rescam-crypto"
-version = "0.1.0"
-description = "Crypto scam-awareness simulation and visit notification tool"
+version = "0.2.0"
+description = "Crypto scam-awareness simulation and visit dashboard"
 readme = "README.md"
 requires-python = ">=3.10"
 dependencies = [
@@ -19,3 +19,6 @@ rescam = "rescam.cli:main"
 
 [tool.setuptools.packages.find]
 include = ["rescam*"]
+
+[tool.setuptools.package-data]
+rescam = ["static/*.css"]
