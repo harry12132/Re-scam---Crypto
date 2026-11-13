@@ -1,17 +1,9 @@
 from __future__ import annotations
 
 import argparse
-import json
-import os
-import uuid
-from datetime import datetime, timezone
-from pathlib import Path
 
-import qrcode
-
-from .storage import DATA_DIR, list_campaigns, save_campaign
-
-CURRENCIES = ("BTC", "ETH", "SOL", "XRP")
+from .campaigns import CURRENCIES, create_campaign, qr_path
+from .storage import DATA_DIR, list_campaigns
 
 
 def prompt(label: str, default: str | None = None) -> str:
@@ -20,51 +12,25 @@ def prompt(label: str, default: str | None = None) -> str:
     return value or (default or "")
 
 
-def create_campaign() -> None:
-    print("\nRe-scam — create a simulated crypto receipt")
-    print("This creates a demonstration only, not proof of payment.\n")
+def create_from_cli() -> None:
+    print("\nRe-scam — create a simulated crypto campaign")
+    print("Demonstration only. This is not proof of payment.\n")
 
-    currency = prompt("Cryptocurrency (BTC/ETH/SOL/XRP)", "BTC").upper()
-    if currency not in CURRENCIES:
-        raise SystemExit(f"Unsupported currency: {currency}")
-
-    amount = prompt("Amount", "0.05")
-    try:
-        if float(amount) <= 0:
-            raise ValueError
-    except ValueError:
-        raise SystemExit("Amount must be a positive number.")
-
-    payment_method = prompt("Payment method", "Crypto transfer")
+    currency = prompt(f"Cryptocurrency ({'/'.join(CURRENCIES)})", "BTC").upper()
+    amount = prompt("Illustrative amount", "0.05")
+    payment_method = prompt("Example payment method", "Crypto transfer")
     note = prompt("Additional note (optional)")
-    created_at = datetime.now(timezone.utc).isoformat()
-    campaign_id = uuid.uuid4().hex[:12]
-    public_url = os.getenv("RESCAM_PUBLIC_URL", "http://127.0.0.1:8000").rstrip("/")
-    campaign = {
-        "id": campaign_id,
-        "created_at": created_at,
-        "currency": currency,
-        "amount": amount,
-        "payment_method": payment_method,
-        "note": note,
-        "public_url": f"{public_url}/c/{campaign_id}",
-        "simulation": True,
-    }
 
-    save_campaign(campaign)
-    output_dir = DATA_DIR / "campaigns"
-    output_dir.mkdir(parents=True, exist_ok=True)
-    json_path = output_dir / f"{campaign_id}.json"
-    qr_path = output_dir / f"{campaign_id}.png"
-    json_path.write_text(json.dumps(campaign, indent=2), encoding="utf-8")
-    qrcode.make(campaign["public_url"]).save(qr_path)
+    try:
+        campaign = create_campaign(currency, amount, payment_method, note)
+    except ValueError as exc:
+        raise SystemExit(str(exc)) from exc
 
     print("\nCampaign created.")
-    print(f"ID:       {campaign_id}")
+    print(f"ID:       {campaign['id']}")
     print(f"Page:     {campaign['public_url']}")
-    print(f"Details:  {json_path}")
-    print(f"QR code:  {qr_path}")
-    print("\nStart the server with: rescam serve")
+    print(f"QR code:  {qr_path(campaign['id'])}")
+    print("\nOpen the page while the server is running.")
 
 
 def serve() -> None:
@@ -78,7 +44,7 @@ def main() -> None:
     args = parser.parse_args()
 
     if args.command == "create":
-        create_campaign()
+        create_from_cli()
     elif args.command == "serve":
         serve()
     elif args.command == "list":
